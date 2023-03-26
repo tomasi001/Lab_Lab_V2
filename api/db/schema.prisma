@@ -8,11 +8,128 @@ generator client {
   binaryTargets = "native"
 }
 
-// Define your own datamodels here and run `yarn redwood prisma migrate dev`
-// to create migrations for them and apply to your dev DB.
-// TODO: Please remove the following example:
-model UserExample {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+model User {
+  id               Int               @id @default(autoincrement())
+  firstName        String
+  lastName         String
+  email            String
+  accountStatus    String // enum AccountStatus { CONFIRM_EMAIL ACTIVE UNKNOWN}
+  textEntries      TextEntry[]
+  voiceEntries     VoiceEntry[]
+  wordCloud        WordCloud[]
+  commonNarratives CommonNarrative[]
+  thoughtPatterns  ThoughtPattern[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  Pinned           Pinned[]
+
+  // DB AUTH VALUES DO NOT ALTER
+  hashedPassword      String
+  salt                String
+  resetToken          String
+  resetTokenExpiresAt DateTime
+  roles               String
 }
+
+model TextEntry {
+  id        Int      @id @default(autoincrement())
+  title     String?
+  entry     String
+  userId    Int
+  User      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VoiceEntry {
+  id        Int      @id @default(autoincrement())
+  title     String?
+  entry     String
+  userId    Int
+  User      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WordCloud {
+  id        Int      @id @default(autoincrement())
+  title     String?
+  userId    Int
+  User      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  words     Word[]
+}
+
+model CommonNarrative {
+  id        Int      @id @default(autoincrement())
+  title     String?
+  narrative String
+  userId    Int
+  User      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ThoughtPattern {
+  id        Int      @id @default(autoincrement())
+  title     String?
+  pattern   String
+  userId    Int
+  User      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Word {
+  id          Int       @id @default(autoincrement())
+  word        String
+  rating      Int
+  wordCloudId Int
+  wordClouds  WordCloud @relation(fields: [wordCloudId], references: [id])
+}
+
+model Pinned {
+  id         Int      @id @default(autoincrement())
+  title      String?
+  pinnedItem String
+  userId     Int
+  User       User     @relation(fields: [userId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// NOTE: FOR DB AUTH
+//  If you expose any of your user data via GraphQL be sure to exclude
+//  `hashedPassword` and `salt` (or whatever you named them) from the
+//  SDL file that defines the fields for your user.
+
+//  You'll need to let Redwood know what fields you're using for your
+//  users' `id` and `username` fields. In this case we're using `id` and
+//  `email`, so update those in the `authFields` config in
+//  `/api/src/functions/auth.js` (this is also the place to tell Redwood if
+//  you used a different name for the `hashedPassword`, `salt`,
+//  `resetToken` or `resetTokenExpiresAt`, fields:`
+
+//    authFields: {
+//      id: 'id',
+//      username: 'email',
+//      hashedPassword: 'hashedPassword',
+//      salt: 'salt',
+//      resetToken: 'resetToken',
+//      resetTokenExpiresAt: 'resetTokenExpiresAt',
+//      challenge: 'webAuthnChallenge'
+//    },
+
+//  To get the actual user that's logged in, take a look at `getCurrentUser()`
+//  in `/api/src/lib/auth.js`. We default it to something simple, but you may
+//  use different names for your model or unique ID fields, in which case you
+//  need to update those calls (instructions are in the comment above the code).
+
+//  Finally, we created a SESSION_SECRET environment variable for you in
+//  /Users/thomasshields/LabLab_AI/ease/.env. This value should NOT be checked
+//  into version control and should be unique for each environment you
+//  deploy to. If you ever need to log everyone out of your app at once
+//  change this secret to a new value and deploy. To create a new secret, run:
+
+//    yarn rw generate secret

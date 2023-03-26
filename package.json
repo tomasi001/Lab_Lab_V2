@@ -6,7 +6,14 @@
       "web"
     ]
   },
+  "scripts": {
+    "dev": "yarn rw dev",
+    "migrate": "yarn rw prisma migrate dev",
+    "studio": "yarn rw prisma studio",
+    "generate": "yarn rw g types"
+  },
   "devDependencies": {
+    "@redwoodjs/auth-dbauth-setup": "4.4.2",
     "@redwoodjs/core": "4.4.2"
   },
   "eslintConfig": {
