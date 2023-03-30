@@ -1,6 +1,6 @@
 import type { APIGatewayProxyEvent, Context } from 'aws-lambda'
 
-import { DbAuthHandler, DbAuthHandlerOptions } from '@redwoodjs/auth-dbauth-api'
+import { DbAuthHandler, DbAuthHandlerOptions, PasswordValidationError } from '@redwoodjs/auth-dbauth-api'
 
 import { db } from 'src/lib/db'
 
@@ -21,7 +21,10 @@ export const handler = async (
     // You could use this return value to, for example, show the email
     // address in a toast message so the user will know it worked and where
     // to look for the email.
+
     handler: (user) => {
+      const link = `http://localhost:8910/reset-password?resetToken=${user.resetToken}`
+      user.resetLink = link
       return user
     },
 
@@ -107,21 +110,37 @@ export const handler = async (
     //
     // If this returns anything else, it will be returned by the
     // `signUp()` function in the form of: `{ message: 'String here' }`.
-    handler: ({ username, hashedPassword, salt, userAttributes }) => {
-      return db.user.create({
-        data: {
-          email: username,
-          hashedPassword: hashedPassword,
-          salt: salt,
-          // name: userAttributes.name
-        },
-      })
+    handler: ({ username, hashedPassword, salt }) => {
+      try {
+        return db.user.create({
+          data: {
+            firstName: '',
+            lastName: '',
+            email: username,
+            accountStatus: 'CREATED',
+            hashedPassword: hashedPassword,
+            salt: salt,
+            roles: 'admin',
+          },
+        })
+      } catch (error) {
+        console.log(error)
+      }
+
     },
 
     // Include any format checks for password here. Return `true` if the
     // password is valid, otherwise throw a `PasswordValidationError`.
     // Import the error along with `DbAuthHandler` from `@redwoodjs/api` above.
     passwordValidation: (_password) => {
+      if (_password.length < 8) {
+        throw new PasswordValidationError('Password must be at least 8 characters')
+      }
+
+      if (!_password.match(/[A-Z]/)) {
+        throw new PasswordValidationError('Password must contain at least one capital letter')
+      }
+
       return true
     },
 

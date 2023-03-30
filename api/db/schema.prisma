@@ -12,7 +12,7 @@ model User {
   id               Int               @id @default(autoincrement())
   firstName        String
   lastName         String
-  email            String
+  email            String            @unique
   accountStatus    String // enum AccountStatus { CONFIRM_EMAIL ACTIVE UNKNOWN}
   textEntries      TextEntry[]
   voiceEntries     VoiceEntry[]
@@ -26,8 +26,8 @@ model User {
   // DB AUTH VALUES DO NOT ALTER
   hashedPassword      String
   salt                String
-  resetToken          String
-  resetTokenExpiresAt DateTime
+  resetToken          String?
+  resetTokenExpiresAt DateTime?
   roles               String
 }
 

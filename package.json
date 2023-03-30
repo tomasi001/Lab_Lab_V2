@@ -7,6 +7,7 @@
     ]
   },
   "scripts": {
+    "dev:full": "yarn generate && yarn dev",
     "dev": "yarn rw dev",
     "migrate": "yarn rw prisma migrate dev",
     "studio": "yarn rw prisma studio",
